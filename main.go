@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"os"
+	"strings"
 )
 
 type AnswerRecord struct {
@@ -14,22 +13,41 @@ type AnswerRecord struct {
 	Answer   string
 }
 
+func (r AnswerRecord) String() string{
+	return fmt.Sprintf("Week: %d\nFullQuestion:{%s}\n, Answer is:{%s}\n" , r.Week, r.Question, r.Answer)
+}
+
 func main() {
-	source, err := os.Open("v1.json")
-	if err != nil {
-		log.Fatal(err)
+}
+
+func askForAnswer(){
+	res, err := GetAnswer(0, "Если UNIX-подобной операционной системой")
+	if err != nil{
+		fmt.Println("AN ERROR!", err)
 	}
-	answers := readFromJson(source)
-	for _, ans := range answers{
-		if err := AddAnswer(ans); err != nil{
-			fmt.Println(err)
-		}
+	if len(res) == 0{
+		fmt.Println("An empty set")
+	}
+	for _, r := range res{
+		fmt.Println(r)
 	}
 }
 
-func readFromJson(r io.Reader) []AnswerRecord {
+func readFromJsonAndMakeUniq(r io.Reader) []AnswerRecord {
+	filter := make(map[AnswerRecord]bool)
+	decoded := []AnswerRecord{}
 	res := []AnswerRecord{}
-	json.NewDecoder(r).Decode(&res)
+	json.NewDecoder(r).Decode(&decoded)
+	for _, rec := range decoded{
+		rec.Question = strings.Replace(rec.Question, "\n", "", -1)
+		rec.Answer = strings.Replace(rec.Answer, "\n", "", -1)
+		if _, cont := filter[rec]; cont{
+			continue
+		}
+		filter[rec] = true
+		res = append(res, rec)
+	}
+
 	//fmt.Println(res)
 	return res
 }
