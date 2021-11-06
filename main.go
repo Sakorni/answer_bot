@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 )
 
@@ -13,31 +14,37 @@ type AnswerRecord struct {
 	Answer   string
 }
 
+const NO_RESULT = "an empty set received"
+
+
 func (r AnswerRecord) String() string{
 	return fmt.Sprintf("Week: %d\nFull question: {%s},\nAnswer is: {%s}\n" , r.Week, r.Question, r.Answer)
 }
 
 func main() {
-	ans, err := GetAnswer(-1, "UNIX-подобной операционной системой")
+	res, err := askForAnswer(os.Args[1])
 	if err != nil{
-		fmt.Println("AN ERROR!", err)
-	}
-	for _, an := range ans{
-		fmt.Println(an)
+		fmt.Println(err)
+	}else {
+		fmt.Println(res)
 	}
 }
 
-func askForAnswer(){
-	res, err := GetAnswer(0, "Если UNIX-подобной операционной системой")
+func askForAnswer(input string)(answer string, err error){
+	res, err := GetAnswer(0, input)
 	if err != nil{
-		fmt.Println("AN ERROR!", err)
+		err = fmt.Errorf("AN ERROR! %s", err.Error())
+		return
 	}
 	if len(res) == 0{
-		fmt.Println("An empty set")
+		err = fmt.Errorf(NO_RESULT)
+		return
 	}
+	builder := strings.Builder{}
 	for _, r := range res{
-		fmt.Println(r)
+		builder.WriteString(r.String())
 	}
+	return builder.String(), nil
 }
 
 func readFromJsonAndMakeUniq(r io.Reader) []AnswerRecord {

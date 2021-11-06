@@ -57,7 +57,6 @@ func GetAnswer(week int, question string) (res []AnswerRecord, err error){
 	defer rows.Close()
 
 	for rows.Next(){
-		//var x int
 		rec := AnswerRecord{}
 		if err = rows.Scan(new(interface{}), &rec.Week, &rec.Question, &rec.Answer); err != nil{
 			return []AnswerRecord{}, err
