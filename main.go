@@ -14,10 +14,17 @@ type AnswerRecord struct {
 }
 
 func (r AnswerRecord) String() string{
-	return fmt.Sprintf("Week: %d\nFullQuestion:{%s}\n, Answer is:{%s}\n" , r.Week, r.Question, r.Answer)
+	return fmt.Sprintf("Week: %d\nFull question: {%s},\nAnswer is: {%s}\n" , r.Week, r.Question, r.Answer)
 }
 
 func main() {
+	ans, err := GetAnswer(-1, "UNIX-подобной операционной системой")
+	if err != nil{
+		fmt.Println("AN ERROR!", err)
+	}
+	for _, an := range ans{
+		fmt.Println(an)
+	}
 }
 
 func askForAnswer(){
