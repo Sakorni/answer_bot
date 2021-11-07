@@ -6,6 +6,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
 	"os"
+	"strings"
 )
 
 const adminId = 277858809
@@ -13,6 +14,8 @@ const ErrorResponse = "Что-то пошло не так. Попробуйте 
 const NoContentResponse = "По запросу ничего не найдено. Попробуйте написать как-нибудь иначе..."
 const ToMuchContetnF = `Бля, чёт дохуя выдаёт, уточни запрос плз
 (Вы только что были спасены от града сообщений в размере %d штук)`
+const NoFuckYou = "Это что за попытки гриферства?\nСкоро в бан полетишь, дружок-пирожок (Как только прикручу оный)"
+const GrifferF = "Это пидор гриферит!\nОн отправлял следующие непристойности:\n%s"
 
 type ReportContent struct {
 	User    tgbotapi.User
@@ -54,7 +57,18 @@ func main() {
 
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-		text := update.Message.Text
+		text := strings.TrimSpace(update.Message.Text)
+		if  deprecated(text) {
+			report := ReportContent{
+				*update.Message.From,
+				fmt.Sprintf(GrifferF,text),
+			}
+			bot.Send(reportToAdmin(report))
+
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, NoFuckYou)
+			bot.Send(msg)
+			continue
+		}
 		var response []string
 		answer, err := utils.AskForAnswer(text)
 
@@ -85,9 +99,16 @@ func main() {
 	}
 }
 
+func deprecated(s string)bool{
+	return len(s) < 3 ||
+		strings.Contains(s, "_") ||
+		strings.Count(s, "%") > 1
+}
+
 func reportToAdmin(content ReportContent) tgbotapi.MessageConfig {
 	message := fmt.Sprintf(
 		"Произошла ошибка!\nИсточник - {%s}\nСодержание ошибки - {%s}",
 		content.UserDescription(), content.Caption)
 	return tgbotapi.NewMessage(adminId, message)
 }
+
