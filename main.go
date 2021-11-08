@@ -3,10 +3,11 @@ package main
 import (
 	"CAOS/utils"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
 	"os"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 const adminId = 277858809
@@ -40,8 +41,6 @@ func main() {
 		log.Panic(err)
 	}
 
-	bot.Debug = true
-
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
@@ -58,10 +57,10 @@ func main() {
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		text := strings.TrimSpace(update.Message.Text)
-		if  deprecated(text) {
+		if deprecated(text) {
 			report := ReportContent{
 				*update.Message.From,
-				fmt.Sprintf(GrifferF,text),
+				fmt.Sprintf(GrifferF, text),
 			}
 			bot.Send(reportToAdmin(report))
 
@@ -84,22 +83,24 @@ func main() {
 				err.Error(),
 			}
 			bot.Send(reportToAdmin(report))
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, ErrorResponse)
+			bot.Send(msg)
 		}
 
-		if len(response) > 10{
+		if len(response) > 10 {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID,
 				fmt.Sprintf(ToMuchContetnF, len(response)))
 			bot.Send(msg)
 			continue
 		}
-		for _, r := range response{
+		for _, r := range response {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, r)
 			bot.Send(msg)
 		}
 	}
 }
 
-func deprecated(s string)bool{
+func deprecated(s string) bool {
 	return len(s) < 3 ||
 		strings.Contains(s, "_") ||
 		strings.Count(s, "%") > 1
@@ -111,4 +112,3 @@ func reportToAdmin(content ReportContent) tgbotapi.MessageConfig {
 		content.UserDescription(), content.Caption)
 	return tgbotapi.NewMessage(adminId, message)
 }
-
